@@ -430,12 +430,13 @@ class _MyHomePageState extends State<MyHomePage> {
             final filter = ProfanityFilter();
             // implement - Check for profanity - 
             //returns a msg "Please refrain from using profanity"(if profanity is present)
-            // hint: use hasProfanity() plugin
+            // hint: use hasProfanity() plugin, then change true to profanity check
             // your codes begin here
-
-
+            if (true){
+  
             // end
-            } //SUICIDAL MESSAGES FILTER HERE
+            //SUICIDAL MESSAGES FILTER HERE
+            }
             else {
               // add code to set feelValue to g b n, 'Positive'='g', 'Negative'='b', 'Neutral'='n'
               if (selectedTone != null) {
