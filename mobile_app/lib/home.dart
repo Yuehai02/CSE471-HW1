@@ -428,21 +428,18 @@ class _MyHomePageState extends State<MyHomePage> {
               ElevatedButton.styleFrom(backgroundColor: Colors.indigo.shade300),
           onPressed: () {
             final filter = ProfanityFilter();
-            // implement - Check for profanity - 
+            // implement - Check for profanity -
             //returns a msg "Please refrain from using profanity"(if profanity is present)
             // hint: use hasProfanity() plugin, then change true to profanity check
             // your codes begin here
-            if (true){
-  
-            // end
-            //SUICIDAL MESSAGES FILTER HERE
-            }
-            else {
+            if (true) {
+              // end
+              //SUICIDAL MESSAGES FILTER HERE
+            } else {
               // add code to set feelValue to g b n, 'Positive'='g', 'Negative'='b', 'Neutral'='n'
               if (selectedTone != null) {
                 String feelValue;
                 // your codes begin here
-
 
                 // end
                 // Generating a random delay between 8 and 24 hours
@@ -453,7 +450,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     postTime.add(Duration(hours: delayInHours));
                 // use FirebaseFirestore.instance to store the comment entry (data, user, feelvalue, posttime, visibletime)
                 // your codes begin here
-
 
                 // end
                 setState(() {
@@ -489,7 +485,7 @@ class _MyHomePageState extends State<MyHomePage> {
       latitude: 0,
       longitude: 0,
       speed: 0,
-      timestamp: null,
+      timestamp: DateTime.now(),
       accuracy: 0,
       altitude: 0,
       speedAccuracy: 0,

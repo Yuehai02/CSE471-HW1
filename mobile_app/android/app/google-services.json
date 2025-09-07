@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "474818731458",
-    "project_id": "test-102ff",
-    "storage_bucket": "test-102ff.appspot.com"
+    "project_number": "135321839171",
+    "project_id": "cse471-hw1-2d19a",
+    "storage_bucket": "cse471-hw1-2d19a.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:474818731458:android:62fc081676b6f5d9de4a5b",
+        "mobilesdk_app_id": "1:135321839171:android:015a8a6810f9a25bccd6f6",
         "android_client_info": {
           "package_name": "com.example.mobile_app"
         }
@@ -15,7 +15,26 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCqjERKFwT8c-FINtCO1wBuQsJ66Wdgt5g"
+          "current_key": "AIzaSyAw_aRTVSfLY9RSZCBzAgKRaPE9VouZnyE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:135321839171:android:fc7ccff1f0fbdd21ccd6f6",
+        "android_client_info": {
+          "package_name": "yuehai.yang.hw1.mobile_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAw_aRTVSfLY9RSZCBzAgKRaPE9VouZnyE"
         }
       ],
       "services": {

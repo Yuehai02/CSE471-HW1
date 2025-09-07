@@ -116,6 +116,12 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                         try {
                           // your codes begin here, you can use createUserWithEmailAndPassword in FirebaseAuth.instance
                           // final user =
+                          final cred = await FirebaseAuth.instance
+                              .createUserWithEmailAndPassword(
+                            email: nameController.text.trim(),
+                            password: passwordController.text.trim(),
+                          );
+                          final user = cred.user;
 
                           // end
                           if (user != null) {
