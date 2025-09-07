@@ -6,7 +6,6 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_nude_detector/flutter_nude_detector.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -24,6 +23,35 @@ import 'package:path_provider/path_provider.dart';
 import 'groups.dart';
 import 'journal.dart';
 
+class LocationRepo {
+  static Future<bool> _ensurePermission() async {
+    if (!await Geolocator.isLocationServiceEnabled()) return false;
+    var p = await Geolocator.checkPermission();
+    if (p == LocationPermission.denied) {
+      p = await Geolocator.requestPermission();
+    }
+    return !(p == LocationPermission.denied ||
+        p == LocationPermission.deniedForever);
+  }
+
+  // get present loaction
+  static Future<Position?> getCurrent() async {
+    if (!await _ensurePermission()) return null;
+    return Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+  }
+
+  // write in users/{uid}
+  static Future<void> writeUserLocation(Position pos) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      'lastLocation': GeoPoint(pos.latitude, pos.longitude),
+      'lastLocatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+}
+
 List<String> collegeList = [];
 String dropdownValue = '';
 //trying to fetch all the colleges names first and store in an array
@@ -37,7 +65,7 @@ Future<List<String>> fetchCollegeList() async {
       collegeList.add(college);
     }
   }
-  dropdownValue = collegeList.first;
+  dropdownValue = collegeList.isNotEmpty ? collegeList.first : '';
   return collegeList;
 }
 
@@ -93,6 +121,7 @@ class _MyHomePageState extends State<MyHomePage> {
         collegeList = college;
       });
     });
+    _displayCurrentLocation();
   }
 
   Widget _buildDisplayDialog(BuildContext context, data) {
@@ -327,18 +356,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   String? _imagePath;
-  bool _containsNudity = false;
-  num temp = 0;
 
-  Future<dynamic> _onButtonPressed(image) async {
-    if (image != null) {
-      temp++;
-      final hasNudity = await FlutterNudeDetector.detect(path: image.path);
-      setState(() {
-        _imagePath = image.path;
-        _containsNudity = hasNudity;
-      });
-    }
+  Future<void> _onButtonPressed(XFile image) async {
+    setState(() {
+      _imagePath = image.path;
+    });
   }
 
   Future getImage(
@@ -347,24 +369,15 @@ class _MyHomePageState extends State<MyHomePage> {
     final pickedFile = await picker.pickImage(source: img, imageQuality: 100);
     XFile? xfilePick = pickedFile;
     if (xfilePick != null) {
-      _onButtonPressed(pickedFile);
-      String imgPath = xfilePick.path;
-      if (_containsNudity || temp == 2) {
-        Fluttertoast.showToast(
-          msg: "Picture marked as NSFW, please try again",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER, // Also possible "TOP" and "BOTTOM"
-        );
-      } else {
-        Fluttertoast.showToast(
-          msg: "Picture confirmed",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER, // Also possible "TOP" and "BOTTOM"
-        );
-        galleryFile = File(pickedFile!.path);
-        imgFlag = true;
-        setState(() {});
-      }
+      await _onButtonPressed(xfilePick);
+      Fluttertoast.showToast(
+        msg: "Picture selected",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+      );
+      galleryFile = File(xfilePick.path);
+      imgFlag = true;
+      setState(() {});
     } else {}
   }
 
@@ -426,13 +439,40 @@ class _MyHomePageState extends State<MyHomePage> {
         ElevatedButton(
           style:
               ElevatedButton.styleFrom(backgroundColor: Colors.indigo.shade300),
-          onPressed: () {
+          onPressed: () async {
             final filter = ProfanityFilter();
             // implement - Check for profanity -
             //returns a msg "Please refrain from using profanity"(if profanity is present)
             // hint: use hasProfanity() plugin, then change true to profanity check
             // your codes begin here
-            if (true) {
+            final text = cmntController.text.trim();
+            //empty
+            if (text.isEmpty) {
+              Fluttertoast.showToast(msg: "Comment cannot be empty.");
+              return;
+            }
+            //some "hurt myself" word
+            final crisis = RegExp(
+              r'(suicide|kill myself|end my life|want to die|self[- ]?harm|cut myself)',
+              caseSensitive: false,
+            );
+            //
+            final hasIssue = filter.hasProfanity(text) || crisis.hasMatch(text);
+
+            if (hasIssue) {
+              if (filter.hasProfanity(text)) {
+                Fluttertoast.showToast(
+                    msg: "Please refrain from using profanity.");
+              }
+              if (crisis.hasMatch(text)) {
+                Fluttertoast.showToast(
+                  msg:
+                      "Your message seems distressing. Please consider reaching out to someone you trust or campus counseling.",
+                  toastLength: Toast.LENGTH_LONG,
+                );
+              }
+              return;
+
               // end
               //SUICIDAL MESSAGES FILTER HERE
             } else {
@@ -440,6 +480,18 @@ class _MyHomePageState extends State<MyHomePage> {
               if (selectedTone != null) {
                 String feelValue;
                 // your codes begin here
+                switch (selectedTone) {
+                  case 'Positive':
+                    feelValue = 'g'; // good
+                    break;
+                  case 'Negative':
+                    feelValue = 'b'; // bad
+                    break;
+                  case 'Neutral':
+                  default:
+                    feelValue = 'n';
+                    break;
+                }
 
                 // end
                 // Generating a random delay between 8 and 24 hours
@@ -450,6 +502,22 @@ class _MyHomePageState extends State<MyHomePage> {
                     postTime.add(Duration(hours: delayInHours));
                 // use FirebaseFirestore.instance to store the comment entry (data, user, feelvalue, posttime, visibletime)
                 // your codes begin here
+                final userEmail = auth?.email ?? 'anonymous';
+                await FirebaseFirestore.instance
+                    .collection('comments')
+                    .doc(locValue) // 位置键（你的弹窗标题里就是 locValue）
+                    .collection('comments')
+                    .add({
+                  'data': text,
+                  'user': userEmail,
+                  'feel': feelValue, // g / b / n
+                  'postTime': Timestamp.fromDate(postTime),
+                  'visibleTime': Timestamp.fromDate(visibleTime),
+                  // 可选附带：方便后续查询/统计
+                  'college': dropdownValue,
+                  'locationName': locValue,
+                });
+                Fluttertoast.showToast(msg: "Comment submitted.");
 
                 // end
                 setState(() {
@@ -517,11 +585,26 @@ class _MyHomePageState extends State<MyHomePage> {
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
 
   void _displayCurrentLocation() async {
-    final location = await Geolocator.getCurrentPosition();
-    _add(location.latitude, location.longitude, 'Your Location', true, -1);
+    final pos = await LocationRepo.getCurrent();
+    if (pos == null) {
+      Fluttertoast.showToast(msg: "Location permission denied/disabled.");
+      return;
+    }
+
+    await LocationRepo.writeUserLocation(
+        pos); // write in Firestore: users/{uid}
+
+    _add(pos.latitude, pos.longitude, 'Your Location', true,
+        -1); //write point on the map
+
+    try {
+      mapController.animateCamera(
+        CameraUpdate.newLatLngZoom(LatLng(pos.latitude, pos.longitude), 14),
+      );
+    } catch (_) {}
 
     setState(() {
-      _location = location;
+      _location = pos;
     });
   }
 
@@ -764,19 +847,17 @@ class _MyHomePageState extends State<MyHomePage> {
                           style: TextStyle(color: Colors.indigo.shade500),
                         ),
                         DropdownButton(
-                          value: dropdownValue,
+                          value: dropdownValue.isEmpty ? null : dropdownValue,
+                          hint: const Text('Select college'),
                           items: collegeList
-                              .map<DropdownMenuItem<String>>((String value) {
+                              .map<DropdownMenuItem<String>>((String v) {
                             return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
+                                value: v, child: Text(v));
                           }).toList(),
                           onChanged: (String? value) {
-                            setState(() {
-                              dropdownValue = value!;
-                            });
-                            _addCollegeMarkers(value!);
+                            if (value == null) return;
+                            setState(() => dropdownValue = value);
+                            _addCollegeMarkers(value);
                             _displayCurrentLocation();
                           },
                         ),

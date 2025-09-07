@@ -6,7 +6,7 @@ publish_to: 'none'
 version: 0.0.1+1
 
 environment:
-  sdk: '>=2.18.4 <3.0.0'
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -28,7 +28,7 @@ dependencies:
   url_launcher:
   permission_handler:
   profanity_filter: ^2.0.0
-  flutter_nude_detector:
+  #flutter_nude_detector:
   path_provider: ^2.1.1
 
 dev_dependencies:

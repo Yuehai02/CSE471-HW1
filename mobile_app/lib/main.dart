@@ -9,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'dart:ui';
 
 //the function that initially runs when the app is opened
 //initializes Firebase connection and ensures permissions are granted
@@ -42,6 +43,11 @@ void main() async {
       }
     }
   }
+  //print log“type 'List<Object?>' is not a subtype of type 'PigeonUserDetails?'”
+  PlatformDispatcher.instance.onError = (error, stack) {
+    debugPrint('UNCAUGHT: $error\n$stack');
+    return true;
+  };
   runApp(MyApp());
 }
 
@@ -77,7 +83,6 @@ class MyStatefulWidget extends StatefulWidget {
 final _auth = FirebaseAuth.instance;
 
 //Displays the login page
-
 
 //create your own google-services.json using firebase and replace it under android/app, an example is provided
 //https://firebase.google.com/docs/android/setup
