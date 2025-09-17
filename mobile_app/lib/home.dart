@@ -107,9 +107,9 @@ DateTime _lindermanTime = DateTime.parse("2000-01-01");
 DateTime _fmlTime = DateTime.parse("2000-01-01");
 DateTime _storeTime = DateTime.parse("2000-01-01");
 bool imgFlag = false;
-var auth = FirebaseAuth.instance.currentUser;
 
 class _MyHomePageState extends State<MyHomePage> {
+  bool _submittingComment = false;
   File? galleryFile;
   final picker = ImagePicker();
   //calls each time the app is opened
@@ -181,128 +181,102 @@ class _MyHomePageState extends State<MyHomePage> {
 
   bool _isNSFW = false;
 
-  Widget _buildPopupDialog(BuildContext context, locValue) {
-    return AlertDialog(
-      title: Text(locValue + " Comments"),
-      scrollable: true,
-      contentPadding: EdgeInsets.all(1),
-      content: Container(
-          height: 400,
-          width: 150,
-          child: FutureBuilder(
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  // If we got an error
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        '${snapshot.error} occurred',
-                        style: TextStyle(fontSize: 18),
-                      ),
-                    );
+  Widget _buildPopupDialog(BuildContext context, String locValue) {
+    final me = FirebaseAuth.instance.currentUser?.email;
 
-                    // if we got our data
-                  } else if (snapshot.hasData) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: snapshot.data!.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            List<bool> _likes =
-                                List.filled(snapshot.data!.length, false);
-                            return Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: (snapshot.data!
-                                                            .elementAt(index)
-                                                        as Map)['feel'] ==
-                                                    "b"
-                                                ? Colors.red
-                                                : (snapshot.data!.elementAt(
-                                                                index)
-                                                            as Map)['feel'] ==
-                                                        "n"
-                                                    ? Colors.yellow
-                                                    : Colors.green,
-                                            minimumSize: Size(10, 10),
-                                            shape: CircleBorder(
-                                                side: BorderSide(
-                                                    color: Colors.white54)),
-                                          ),
-                                          child: Text(""),
-                                          onPressed: () {},
-                                        ),
-                                        IconButton(
-                                          icon: _likes[index]
-                                              ? Icon(Icons.thumb_up_alt,
-                                                  size: 16)
-                                              : Icon(Icons.thumb_up_alt,
-                                                  color: Colors.blue, size: 16),
-                                          onPressed: () {
-                                            _likes[index] = !_likes[index];
-                                            setState(() {
-                                              _likes[index];
-                                            });
-                                            print(_likes[index]);
-                                          },
-                                        ),
-                                        Text(""),
-                                        Container(
-                                          child: Text(
-                                            (snapshot.data!.elementAt(index)
-                                                as Map)['user'],
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(fontSize: 12),
-                                          ),
-                                          width: 90,
-                                        ),
-                                        SizedBox(width: 5),
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  Colors.indigo.shade300),
-                                          child: Text('Show Message',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  fontSize: 12)),
-                                          onPressed: () {
-                                            showDialog(
-                                              context: context,
-                                              builder: (BuildContext context) =>
-                                                  _buildDisplayDialog(
-                                                      context,
-                                                      snapshot.data!
-                                                          .elementAt(index)),
-                                            );
-                                          },
-                                        ),
-                                      ]),
-                                ]);
-                          },
+    return AlertDialog(
+      title: Text('$locValue Comments'),
+      scrollable: true,
+      contentPadding: const EdgeInsets.all(1),
+      content: SizedBox(
+        height: 400,
+        width: 150,
+        child: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('comments')
+              .doc(locValue)
+              .collection('comments')
+              .orderBy('postTime', descending: true)
+              .snapshots(),
+          builder: (context, snap) {
+            if (snap.hasError) {
+              return Center(child: Text('Error: ${snap.error}'));
+            }
+            if (!snap.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final now = DateTime.now();
+            final docs = snap.data!.docs.toList();
+
+            if (docs.isEmpty) {
+              return const Center(child: Text('No comments yet'));
+            }
+
+            return ListView.builder(
+              itemCount: docs.length,
+              itemBuilder: (context, index) {
+                final m = docs[index].data() as Map<String, dynamic>;
+                final feel = (m['feel'] ?? 'n') as String;
+                final color = (feel == 'b')
+                    ? Colors.red
+                    : (feel == 'n')
+                        ? Colors.yellow
+                        : Colors.green;
+
+                return Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: color,
+                          minimumSize: const Size(10, 10),
+                          shape: const CircleBorder(
+                            side: BorderSide(color: Colors.white54),
+                          ),
                         ),
-                      ],
-                    );
-                  }
-                }
-                return Center(
-                  child: CircularProgressIndicator(),
+                        onPressed: () {},
+                        child: const SizedBox.shrink(),
+                      ),
+                      SizedBox(
+                        width: 120,
+                        child: Text(
+                          (m['user'] ?? 'anonymous') as String,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.indigo.shade300,
+                          minimumSize: const Size(10, 32),
+                        ),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => _buildDisplayDialog(context, m),
+                          );
+                        },
+                        child: const Text(
+                          'Show Message',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w500, fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               },
-              future: getComments(locValue))),
+            );
+          },
+        ),
+      ),
       actions: <Widget>[
         ElevatedButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+          onPressed: () => Navigator.of(context).pop(),
           style:
               ElevatedButton.styleFrom(backgroundColor: Colors.indigo.shade300),
           child: const Text('Close'),
@@ -312,10 +286,14 @@ class _MyHomePageState extends State<MyHomePage> {
               ElevatedButton.styleFrom(backgroundColor: Colors.indigo.shade300),
           onPressed: () {
             Navigator.of(context).pop();
-            showDialog(
-                context: context,
-                builder: (BuildContext context) =>
-                    _buildCommentDialog(context, locValue));
+            Future.microtask(() {
+              if (!mounted) return;
+              showDialog(
+                context: this.context,
+                builder: (dialogCtx) =>
+                    _buildCommentDialog(dialogCtx, locValue),
+              );
+            });
           },
           child: const Text('Add Comment'),
         ),
@@ -384,7 +362,7 @@ class _MyHomePageState extends State<MyHomePage> {
   TextEditingController cmntController = TextEditingController();
   String? selectedTone;
 
-  Widget _buildCommentDialog(BuildContext context, locValue) {
+  Widget _buildCommentDialog(BuildContext dialogCtx, String locValue) {
     // To store the selected tone
 
     return AlertDialog(
@@ -416,9 +394,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   );
                 }).toList(),
                 onChanged: (String? newValue) {
-                  selectedTone = newValue;
                   setState(() {
-                    selectedTone;
+                    selectedTone = newValue;
                   });
                 },
               ),
@@ -439,98 +416,102 @@ class _MyHomePageState extends State<MyHomePage> {
         ElevatedButton(
           style:
               ElevatedButton.styleFrom(backgroundColor: Colors.indigo.shade300),
-          onPressed: () async {
-            final filter = ProfanityFilter();
-            // implement - Check for profanity -
-            //returns a msg "Please refrain from using profanity"(if profanity is present)
-            // hint: use hasProfanity() plugin, then change true to profanity check
-            // your codes begin here
-            final text = cmntController.text.trim();
-            //empty
-            if (text.isEmpty) {
-              Fluttertoast.showToast(msg: "Comment cannot be empty.");
-              return;
-            }
-            //some "hurt myself" word
-            final crisis = RegExp(
-              r'(suicide|kill myself|end my life|want to die|self[- ]?harm|cut myself)',
-              caseSensitive: false,
-            );
-            //
-            final hasIssue = filter.hasProfanity(text) || crisis.hasMatch(text);
+          onPressed: _submittingComment
+              ? null
+              : () async {
+                  if (_submittingComment) return;
+                  setState(() => _submittingComment = true);
+                  try {
+                    final filter = ProfanityFilter();
+                    final text = cmntController.text.trim();
 
-            if (hasIssue) {
-              if (filter.hasProfanity(text)) {
-                Fluttertoast.showToast(
-                    msg: "Please refrain from using profanity.");
-              }
-              if (crisis.hasMatch(text)) {
-                Fluttertoast.showToast(
-                  msg:
-                      "Your message seems distressing. Please consider reaching out to someone you trust or campus counseling.",
-                  toastLength: Toast.LENGTH_LONG,
-                );
-              }
-              return;
+                    if (text.isEmpty) {
+                      Fluttertoast.showToast(msg: "Comment cannot be empty.");
+                      return;
+                    }
 
-              // end
-              //SUICIDAL MESSAGES FILTER HERE
-            } else {
-              // add code to set feelValue to g b n, 'Positive'='g', 'Negative'='b', 'Neutral'='n'
-              if (selectedTone != null) {
-                String feelValue;
-                // your codes begin here
-                switch (selectedTone) {
-                  case 'Positive':
-                    feelValue = 'g'; // good
-                    break;
-                  case 'Negative':
-                    feelValue = 'b'; // bad
-                    break;
-                  case 'Neutral':
-                  default:
-                    feelValue = 'n';
-                    break;
-                }
+                    final crisis = RegExp(
+                      r'(suicide|kill myself|end my life|want to die|self[- ]?harm|cut myself)',
+                      caseSensitive: false,
+                    );
+                    final hasIssue =
+                        filter.hasProfanity(text) || crisis.hasMatch(text);
+                    if (hasIssue) {
+                      if (filter.hasProfanity(text)) {
+                        Fluttertoast.showToast(
+                            msg: "Please refrain from using profanity.");
+                      }
+                      if (crisis.hasMatch(text)) {
+                        Fluttertoast.showToast(
+                          msg:
+                              "Your message seems distressing. Please consider reaching out to someone you trust or campus counseling.",
+                          toastLength: Toast.LENGTH_LONG,
+                        );
+                      }
+                      return;
+                    }
 
-                // end
-                // Generating a random delay between 8 and 24 hours
-                int delayInHours = Random().nextInt(17) +
-                    8; // Generates a number between 0 and 16, then adds 8
-                DateTime postTime = DateTime.now();
-                DateTime visibleTime =
-                    postTime.add(Duration(hours: delayInHours));
-                // use FirebaseFirestore.instance to store the comment entry (data, user, feelvalue, posttime, visibletime)
-                // your codes begin here
-                final userEmail = auth?.email ?? 'anonymous';
-                await FirebaseFirestore.instance
-                    .collection('comments')
-                    .doc(locValue) // 位置键（你的弹窗标题里就是 locValue）
-                    .collection('comments')
-                    .add({
-                  'data': text,
-                  'user': userEmail,
-                  'feel': feelValue, // g / b / n
-                  'postTime': Timestamp.fromDate(postTime),
-                  'visibleTime': Timestamp.fromDate(visibleTime),
-                  // 可选附带：方便后续查询/统计
-                  'college': dropdownValue,
-                  'locationName': locValue,
-                });
-                Fluttertoast.showToast(msg: "Comment submitted.");
+                    if (selectedTone == null) {
+                      Fluttertoast.showToast(msg: "Please select a tone.");
+                      return;
+                    }
 
-                // end
-                setState(() {
-                  selectedTone = null;
-                  cmntController.clear();
-                });
-                Navigator.of(context).pop();
-              } else {
-                // Handle case when no tone is selected (Maybe show a snackbar or alert)
-              }
-            }
-          },
-          child: const Text('Add Entry'),
+                    String feelValue;
+                    switch (selectedTone) {
+                      case 'Positive':
+                        feelValue = 'g';
+                        break;
+                      case 'Negative':
+                        feelValue = 'b';
+                        break;
+                      default:
+                        feelValue = 'n';
+                    }
+
+                    final delayInHours = Random().nextInt(17) + 8;
+                    final postTimeLocal = DateTime.now();
+                    final visibleTime =
+                        postTimeLocal.add(Duration(hours: delayInHours));
+
+                    final user = FirebaseAuth.instance.currentUser;
+                    final userEmail = user?.email ?? 'anonymous';
+
+                    await FirebaseFirestore.instance
+                        .collection('comments')
+                        .doc(locValue)
+                        .collection('comments')
+                        .add({
+                      'data': text,
+                      'user': userEmail,
+                      'uid': user?.uid,
+                      'feel': feelValue,
+                      'postTime': FieldValue.serverTimestamp(), // 用服务器时间
+                      'visibleTime': Timestamp.fromDate(visibleTime),
+                      'college': dropdownValue,
+                      'locationName': locValue,
+                    });
+
+                    Fluttertoast.showToast(msg: "Comment submitted.");
+
+                    if (mounted) {
+                      setState(() {
+                        selectedTone = null;
+                        cmntController.clear();
+                      });
+                      Navigator.of(dialogCtx).pop();
+                    }
+                  } catch (e) {
+                    Fluttertoast.showToast(msg: "Failed to submit: $e");
+                  } finally {
+                    if (mounted) setState(() => _submittingComment = false);
+                  }
+                },
+          child: _submittingComment
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2))
+              : const Text('Add Entry'),
         ),
         ElevatedButton(
           onPressed: () {
@@ -539,7 +520,7 @@ class _MyHomePageState extends State<MyHomePage> {
               selectedTone = null;
               cmntController.clear();
             });
-            Navigator.of(context).pop();
+            Navigator.of(dialogCtx).pop();
           },
           style:
               ElevatedButton.styleFrom(backgroundColor: Colors.indigo.shade300),
