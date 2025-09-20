@@ -75,13 +75,7 @@ class Home extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Mobile App',
-      theme: ThemeData(
-        primarySwatch: Colors.indigo,
-      ),
-      home: const MyHomePage(title: 'Home Page'),
-    );
+    return const MyHomePage(title: 'Home Page');
   }
 }
 
@@ -485,7 +479,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       'user': userEmail,
                       'uid': user?.uid,
                       'feel': feelValue,
-                      'postTime': FieldValue.serverTimestamp(), // 用服务器时间
+                      'postTime': FieldValue.serverTimestamp(),
                       'visibleTime': Timestamp.fromDate(visibleTime),
                       'college': dropdownValue,
                       'locationName': locValue,
@@ -669,193 +663,199 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        title: "Location",
-        home: Scaffold(
-            backgroundColor: Colors.lightGreen[100],
-            appBar: AppBar(
-              centerTitle: true,
-              backgroundColor: Colors.indigo.shade300,
-              title: Text(
-                "Home Page",
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-            body: Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage("lib/assets/beach.jpg"),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                width: double.infinity,
-                height: double.infinity,
-                margin: const EdgeInsets.all(5),
-                child: Column(children: [
-                  SizedBox(
-                      width: double.infinity,
-                      height: 60,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            margin: const EdgeInsets.all(5),
-                            width: 85,
-                            height: 45,
-                            decoration: BoxDecoration(
-                              color: Colors.white54,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Center(
-                              child: TextButton(
-                                child: Text(
-                                  "Journal",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      color: Colors.indigo.shade300),
-                                ),
-                                onPressed: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => Journal()));
-                                },
-                              ),
-                            ),
+    return Scaffold(
+      backgroundColor: Colors.lightGreen[100],
+      appBar: AppBar(
+        centerTitle: true,
+        backgroundColor: Colors.indigo.shade300,
+        title: const Text(
+          "Home Page",
+          style: TextStyle(fontWeight: FontWeight.w500),
+        ),
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("lib/assets/beach.jpg"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        width: double.infinity,
+        height: double.infinity,
+        margin: const EdgeInsets.all(5),
+        child: Column(
+          children: [
+            SizedBox(
+              width: double.infinity,
+              height: 60,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    margin: const EdgeInsets.all(5),
+                    width: 85,
+                    height: 45,
+                    decoration: BoxDecoration(
+                      color: Colors.white54,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: TextButton(
+                        child: Text(
+                          "Journal",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: Colors.indigo.shade300,
                           ),
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            margin: const EdgeInsets.all(5),
-                            width: 85,
-                            height: 45,
-                            decoration: BoxDecoration(
-                              color: Colors.white54,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Center(
-                              child: TextButton(
-                                child: Text(
-                                  "Activities",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      color: Colors.indigo.shade300),
-                                ),
-                                onPressed: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              const Dailies()));
-                                },
-                              ),
-                            ),
-                          ),
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            margin: const EdgeInsets.all(5),
-                            width: 85,
-                            height: 45,
-                            decoration: BoxDecoration(
-                              color: Colors.white54,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Center(
-                              child: TextButton(
-                                child: Text(
-                                  "Groups",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      color: Colors.indigo.shade300),
-                                ),
-                                onPressed: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              const Groups()));
-                                },
-                              ),
-                            ),
-                          ),
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            margin: const EdgeInsets.all(5),
-                            width: 85,
-                            height: 45,
-                            decoration: BoxDecoration(
-                              color: Colors.white54,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Center(
-                              child: TextButton(
-                                child: Text(
-                                  "Profile",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      color: Colors.indigo.shade300),
-                                ),
-                                onPressed: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              const Profile()));
-                                },
-                              ),
-                            ),
-                          ),
-                        ],
-                      )),
-                  Text(
-                    Random().nextInt(2) == 0
-                        ? "\"You have an individual story to tell\""
-                        : "\"Find happiness in the darkest times\"",
-                    style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 20,
-                        color: Colors.indigo.shade300),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 30.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          "Change current college:",
-                          style: TextStyle(color: Colors.indigo.shade500),
                         ),
-                        DropdownButton(
-                          value: dropdownValue.isEmpty ? null : dropdownValue,
-                          hint: const Text('Select college'),
-                          items: collegeList
-                              .map<DropdownMenuItem<String>>((String v) {
-                            return DropdownMenuItem<String>(
-                                value: v, child: Text(v));
-                          }).toList(),
-                          onChanged: (String? value) {
-                            if (value == null) return;
-                            setState(() => dropdownValue = value);
-                            _addCollegeMarkers(value);
-                            _displayCurrentLocation();
-                          },
-                        ),
-                        SizedBox(
-                            width: 500,
-                            height: 500,
-                            child: GoogleMap(
-                              onMapCreated: _onMapCreated,
-                              initialCameraPosition: CameraPosition(
-                                target: _center,
-                                zoom: 11.0,
-                              ),
-                              markers: Set<Marker>.of(markers.values),
-                            )),
-                      ],
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => Journal()),
+                          );
+                        },
+                      ),
                     ),
                   ),
-                ]))));
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    margin: const EdgeInsets.all(5),
+                    width: 85,
+                    height: 45,
+                    decoration: BoxDecoration(
+                      color: Colors.white54,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: TextButton(
+                        child: Text(
+                          "Activities",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: Colors.indigo.shade300,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const Dailies()),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    margin: const EdgeInsets.all(5),
+                    width: 85,
+                    height: 45,
+                    decoration: BoxDecoration(
+                      color: Colors.white54,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: TextButton(
+                        child: Text(
+                          "Groups",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: Colors.indigo.shade300,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const Groups()),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    margin: const EdgeInsets.all(5),
+                    width: 85,
+                    height: 45,
+                    decoration: BoxDecoration(
+                      color: Colors.white54,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: TextButton(
+                        child: Text(
+                          "Profile",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: Colors.indigo.shade300,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const Profile()),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              Random().nextInt(2) == 0
+                  ? "\"You have an individual story to tell\""
+                  : "\"Find happiness in the darkest times\"",
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 20,
+                color: Colors.indigo.shade300,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 30.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    "Change current college:",
+                    style: TextStyle(color: Colors.indigo.shade500),
+                  ),
+                  DropdownButton(
+                    value: dropdownValue.isEmpty ? null : dropdownValue,
+                    hint: const Text('Select college'),
+                    items:
+                        collegeList.map<DropdownMenuItem<String>>((String v) {
+                      return DropdownMenuItem<String>(value: v, child: Text(v));
+                    }).toList(),
+                    onChanged: (String? value) {
+                      if (value == null) return;
+                      setState(() => dropdownValue = value);
+                      _addCollegeMarkers(value);
+                      _displayCurrentLocation();
+                    },
+                  ),
+                  SizedBox(
+                    width: 500,
+                    height: 500,
+                    child: GoogleMap(
+                      onMapCreated: _onMapCreated,
+                      initialCameraPosition: CameraPosition(
+                        target: _center,
+                        zoom: 11.0,
+                      ),
+                      markers: Set<Marker>.of(markers.values),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

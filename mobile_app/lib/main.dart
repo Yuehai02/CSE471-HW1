@@ -3,7 +3,6 @@ import 'package:mobile_app/help.dart';
 import 'package:mobile_app/home.dart';
 import 'package:mobile_app/password.dart';
 import 'package:mobile_app/signup.dart';
-import 'package:flutter/src/material/colors.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -187,10 +186,9 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                         );
 
                         if (user != null) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const Help()),
+                          if (!mounted) return;
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(builder: (_) => const Home()),
                           );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
